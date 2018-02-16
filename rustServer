@@ -1,0 +1,52 @@
+#!/bin/bash
+prefixSudo=''
+# initialisation Variable
+steamUser='anonymous'
+steamPass=''
+
+rustServersPath='/path/to/serv'
+rustServersName=('serverName1' 'serverName2')
+rustServersSteam=(28015 28025)
+rustServersQuery=(28016 28026)
+rustServersWeb=(8080 8081)
+rustServersRConPass=('changeMe1' 'changeMe2')
+rustServersServerName=('servername="[FR] Server Name | Full WIPED 08\/02"' 'servername="[FR] Server Name x2 | Full WIPED 08\/02"')
+#Attention certain caractère spéciaux peuvent provoquer des bugs
+rustServersNbPlayer=('250' '250')
+rustServersSeed=('2463749' '')
+rustServersWorldSize=('3000' '3000')
+
+#Creation des serveur rust
+echo "---- Installation des serveurs rust ---"
+loop=0
+for i in ${rustServersName[@]};do
+    ${prefixSudo} mkdir -p ${rustServersPath}/${i}/lgsm/config-default/config-lgsm/rustserver/
+    ${prefixSudo} mkdir -p ${rustServersPath}/${i}/serverfiles/oxide
+    ${prefixSudo} mkdir -p ${rustServersPath}/${i}/serverfiles/server
+    ${prefixSudo} mkdir -p ${rustServersPath}/${i}/serverfiles/RustDedicated_Data
+    ${prefixSudo} cp ./_default.cfg ${rustServersPath}/${i}/lgsm/config-default/config-lgsm/rustserver/_default.cfg
+    ${prefixSudo} chown -R 1000:1000 ${rustServersPath}
+
+    sed -i 's/\(port *= *\).*/\1"'${rustServersSteam[$loop]}'"/' /home/docker/rust/${i}/lgsm/config-default/config-lgsm/rustserver/_default.cfg
+    sed -i 's/\(rconport *= *\).*/\1"'${rustServersQuery[$loop]}'"/' /home/docker/rust/${i}/lgsm/config-default/config-lgsm/rustserver/_default.cfg
+    sed -i 's/\(rconpassword *= *\).*/\1"'${rustServersRConPass[$loop]}'"/' /home/docker/rust/${i}/lgsm/config-default/config-lgsm/rustserver/_default.cfg
+
+    sed -i "s/^servername=.*/${rustServersServerName[$loop]}/g" /home/docker/rust/${i}/lgsm/config-default/config-lgsm/rustserver/_default.cfg
+
+    sed -i 's/\(maxplayers *= *\).*/\1"'${rustServersNbPlayer[$loop]}'"/' /home/docker/rust/${i}/lgsm/config-default/config-lgsm/rustserver/_default.cfg
+    sed -i 's/\(seed *= *\).*/\1"'${rustServersSeed[$loop]}'"/' /home/docker/rust/${i}/lgsm/config-default/config-lgsm/rustserver/_default.cfg
+    sed -i 's/\(worldsize *= *\).*/\1"'${rustServersWorldSize[$loop]}'"/' /home/docker/rust/${i}/lgsm/config-default/config-lgsm/rustserver/_default.cfg
+
+    ${prefixSudo} docker run -itd \
+    -p ${rustServersSteam[$loop]}-${rustServersQuery[$loop]}:${rustServersSteam[$loop]}-${rustServersQuery[$loop]} \
+    -p ${rustServersSteam[$loop]}-${rustServersQuery[$loop]}:${rustServersSteam[$loop]}-${rustServersQuery[$loop]}/udp \
+    -p ${rustServersWeb[$loop]}:${rustServersWeb[$loop]} -p ${rustServersWeb[$loop]}:${rustServersWeb[$loop]}/udp  \
+    -v ${rustServersPath}/${i}/lgsm:/home/lgsm/lgsm \
+    -v ${rustServersPath}/${i}/serverfiles/oxide:/home/lgsm/serverfiles/oxide \
+    -v ${rustServersPath}/${i}/serverfiles/server:/home/lgsm/serverfiles/server \
+    -v ${rustServersPath}/${i}/serverfiles/RustDedicated_Data:/home/lgsm/serverfiles/RustDedicated_Data \
+    -e serverName=rustserver -e serveruser=${steamUser} -e steampass=${steamPass} \
+    --restart always --name ${i} sirpixel/gameservermanagers:latest
+
+    loop=${loop}+1
+done

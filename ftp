@@ -1,0 +1,25 @@
+#!/bin/bash
+prefixSudo=''
+# initialisation Variable
+ftpName=('ftpName' 'ftpName2')
+ftpUser=('ftpUser' 'ftpUser2')
+ftpPass=('changeMe' 'changeMe2')
+ftpPath=('/path/to/directory' '/path/to/directory')
+ftpPasvMin=(60180 60190)
+ftpPasvMax=(60189 60199)
+ftp20=(20 22)
+ftp21=(21 23)
+
+# Création des serveur ftp
+echo "---- Installation des serveurs ftp ---"
+loop=0
+for i in ${ftpName[@]};do
+  ${prefixSudo} docker run -itd \
+  -p ${ftp20[$loop]}:20 -p ${ftp21[$loop]}:21 \
+  -p ${ftpPasvMin[$loop]}-${ftpPasvMax[$loop]}:${ftpPasvMin[$loop]}-${ftpPasvMax[$loop]} \
+  -v ${rustServersPath}/${i}:/data \
+  -e USER_NAME=${ftpName} -e USER_PASSWD=${ftpPass} \
+  -e FTP_PASV_MIN_PORT=${ftpPasvMin} -e FTP_PASV_MAX_PORT=${ftpPasvMax} \
+  --restart always --name ${i} forumi0721alpinex64build/alpine-x64-pureftpd:latest
+  loop=${loop}+1
+done

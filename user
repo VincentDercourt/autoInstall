@@ -1,0 +1,21 @@
+#!/bin/bash
+prefixSudo=''
+# initialisation Variable
+users=('vincent' 'northox')
+
+## Création des comptes utilisateurs
+
+# Pour chaque utilisateur un fichier id_rsa.nomDeCompte.pub doit être présent dans le home
+# Exemple id_rsa.vincent.pub - Exemple 2 id_rsa.northox.pub
+for i in ${users[@]};do
+  echo "---- Ajout du compte de "${i}" ---"
+  ${prefixSudo} adduser --disabled-password ${i}
+  echo "---- Création du répertoire .ssh pour le compte de "${i}" ---"
+  ${prefixSudo} mkdir -p /home/${i}/.ssh
+  if [ ! -f "/home/id_rsa."${i}".pub" ]; then
+    echo "---- Ajout de la clef rsa pour le compte de "${i}" ---"
+    ${prefixSudo} cat /home/id_rsa.${i}.pub >> /home/${i}/.ssh/authorized_keys
+  fi
+  echo "---- Changement du propriétaire du dossier .ssh de "${i}" ---"
+  ${prefixSudo} chown -R ${i}:${i} /home/${i}
+done

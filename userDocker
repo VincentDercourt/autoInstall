@@ -1,0 +1,5 @@
+#!/bin/bash
+prefixSudo=''
+## Création du compte docker
+echo "---- Ajout du compte docker ---"
+${prefixSudo} adduser --disabled-password docker

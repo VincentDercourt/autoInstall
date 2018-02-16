@@ -1,0 +1,32 @@
+#!/bin/bash
+prefixSudo=''
+### Installation de docker
+echo "---- Suppression des anciennes version de docker ---"
+${prefixSudo} apt-get remove docker docker-engine docker.io
+
+echo "---- Mise à jour des depot ---"
+${prefixSudo} apt-get update
+
+echo "---- Installation des dépendance nécessaire a docker ---"
+${prefixSudo} apt-get install -y apt-transport-https ca-certificates curl gnupg2 software-properties-common
+
+echo "---- Téléchargement du depot de docker ---"
+curl -fsSL https://download.docker.com/linux/$(. /etc/os-release; echo "$ID")/gpg | ${prefixSudo} apt-key add -
+
+echo "---- Controle du depot de docker ---"
+${prefixSudo} apt-key fingerprint 0EBFCD88
+
+echo "---- Ajout du depot de docker ---"
+${prefixSudo} add-apt-repository \
+   "deb [arch=amd64] https://download.docker.com/linux/$(. /etc/os-release; echo "$ID") \
+   $(lsb_release -cs) \
+   stable"
+
+echo "---- Mise a jour des depots ---"
+${prefixSudo} apt-get update
+
+echo "---- Installation de docker ---"
+${prefixSudo} apt-get install -y docker-ce
+${prefixSudo} apt-cache madison docker-ce
+echo "---- Test de docker ---"
+${prefixSudo} docker run hello-world

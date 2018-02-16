@@ -1,0 +1,7 @@
+#!/bin/bash
+./userDocker
+./user
+./docker
+./portainer
+./rustServer
+./ftp
